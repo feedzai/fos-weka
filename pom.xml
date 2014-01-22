@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>fos-impl-weka</artifactId>
   <name>FOS Weka</name>
-  <version>1.0.4-SNAPSHOT</version>
+  <version>1.0.3-SNAPSHOT</version>
 
   <description>Feedzai Open Scoring Server - Weka Implementation</description>
 
@@ -19,12 +21,12 @@
   <parent>
     <artifactId>fos</artifactId>
     <groupId>com.feedzai.fos</groupId>
-    <version>1.0.3</version>
+    <version>1.0.3-SNAPSHOT</version>
   </parent>
 
   <properties>
     <license.licenseName>gpl_v3</license.licenseName>
-    <license.licenseResolver />
+    <license.licenseResolver></license.licenseResolver>
   </properties>
 
   <licenses>
@@ -58,13 +60,13 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>fos-api</artifactId>
-      <version>1.0.3</version>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>fos-common</artifactId>
-      <version>1.0.3</version>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>
