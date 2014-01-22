@@ -1,0 +1,13 @@
+{
+    "attributes":[
+         { "@type": ".NumericAttribute", "name": "firstNumeric"},
+         { "@type": ".NumericAttribute", "name": "secondNumeric"},
+         { "@type": ".CategoricalAttribute", "name": "aNominal", "categoricalInstances": [ "blue", "gray", "black" ] },
+         { "@type": ".CategoricalAttribute", "name": "theClass", "categoricalInstances": [ "positive", "negative" ] }
+        ],
+    "properties":{
+        "id":"54c5f947-fb25-46cd-b3af-499376171053",
+        "model":"target/test-classes/models/test.model",
+        "classIndex":"3"
+        }
+}

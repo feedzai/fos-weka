@@ -1,0 +1,34 @@
+{
+    "attributes": [
+        {
+            "@type": ".NumericAttribute",
+            "name": "sepal length in cm"
+        },
+        {
+            "@type": ".NumericAttribute",
+            "name": "sepal width in cm"
+        },
+        {
+            "@type": ".NumericAttribute",
+            "name": "petal length in cm"
+        },
+        {
+            "@type": ".NumericAttribute",
+            "name": "petal width in cm"
+        },
+        {
+            "@type": ".CategoricalAttribute",
+            "name": "class",
+            "categoricalInstances": [
+                "Iris-setosa",
+                "Iris-versicolor",
+                "Iris-virginica"
+            ]
+        }
+    ],
+    "properties": {
+        "id": "54c5f947-fb25-46cd-b3af-499376171053",
+        "classifierimpl": "weka.classifiers.trees.J48",
+        "classIndex":"4"
+    }
+}
