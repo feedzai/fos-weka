@@ -3,6 +3,12 @@
 fos-weka is a [fos-core] supporting [Weka] classifiers
 
 
+[![Build Status](https://feedzaios.ci.cloudbees.com/buildStatus/icon?job=fos-weka)](https://feedzaios.ci.cloudbees.com/job/fos-weka/)
+
+[![CloudbeesDevCloud](http://www.cloudbees.com/sites/default/files/Button-Built-on-CB-1.png)](http://www.cloudbees.com/dev)
+
+
+
 ## Why FOS
 
 There are pretty good machine learning training and scoring frameworks/libraries out there, but they don't provide the
