@@ -51,6 +51,7 @@ say [fos-weka].
 [Kryo]: https://github.com/EsotericSoftware/kryo
 [fos-r]: https://github.com/feedzai/fos-r
 [fos-core]: https://github.com/feedzai/fos-core
+[fos-weka]: https://github.com/feedzai/fos-weka
 [Weka]: http://www.cs.waikato.ac.nz/ml/weka/
 [R]: http://www.r-project.org/
 [Maven]: http://maven.apache.org/
