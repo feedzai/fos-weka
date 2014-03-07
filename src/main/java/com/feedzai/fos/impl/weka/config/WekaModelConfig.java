@@ -21,16 +21,16 @@
  */
 package com.feedzai.fos.impl.weka.config;
 
-import com.feedzai.fos.api.Attribute;
-import com.feedzai.fos.api.FOSException;
-import com.feedzai.fos.api.ModelConfig;
+import com.feedzai.fos.api.*;
 import com.feedzai.fos.common.validation.NotNull;
 import com.feedzai.fos.impl.weka.utils.pool.GenericObjectPoolConfig;
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationConverter;
 import org.apache.commons.configuration.MapConfiguration;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -77,6 +77,12 @@ public class WekaModelConfig {
      */
     public static final String CLASSIFIER_CONFIG = "config";
 
+    /**
+     * The property name of the format the classifier is in (e.g. PMML, binary, etc).
+     */
+    public static final String CLASSIFIER_FORMAT = "format";
+
+
     private ModelConfig modelConfig;
     private WekaManagerConfig wekaManagerConfig;
     private int classIndex;
@@ -86,6 +92,11 @@ public class WekaModelConfig {
     private transient boolean dirty = true;
     private boolean classifierThreadSafe;
     private Configuration configuration;
+
+    /**
+     * The {@link com.feedzai.fos.api.ModelDescriptor} of the model.
+     */
+    private ModelDescriptor modelDescriptor;
 
     /**
      * Creates a new model from the given <code>ModelConfig</code> and <code>WekaManagerConfig</code>.
@@ -116,6 +127,12 @@ public class WekaModelConfig {
         String modelFile = configuration.getString(MODEL_FILE);
         if (modelFile != null) {
             this.model = new File(modelFile);
+        }
+
+        String formatValue = configuration.getString(CLASSIFIER_FORMAT);
+        if (formatValue != null) {
+            ModelDescriptor.Format format = ModelDescriptor.Format.valueOf(formatValue);
+            this.modelDescriptor = new ModelDescriptor(format, modelFile);
         }
 
         classifierThreadSafe = configuration.getBoolean(IS_CLASSIFIER_THREAD_SAFE, false /* defaults to Pool implementation*/);
@@ -234,6 +251,28 @@ public class WekaModelConfig {
         this.model = model;
 
         this.modelConfig.setProperty(MODEL_FILE, model.getAbsolutePath());
+    }
+
+    /**
+     * Sets the {@link com.feedzai.fos.api.ModelDescriptor} of the model.
+     *
+     * @param modelDescriptor The {@link com.feedzai.fos.api.ModelDescriptor} of the model.
+     */
+    public void setModelDescriptor(ModelDescriptor modelDescriptor) {
+        this.modelDescriptor = modelDescriptor;
+
+        setModel(new File(modelDescriptor.getModelFilePath()));
+
+        this.modelConfig.setProperty(CLASSIFIER_FORMAT, modelDescriptor.getFormat().toString());
+    }
+
+    /**
+     * Retrieves the {@link com.feedzai.fos.api.ModelDescriptor} of the model.
+     *
+     * @return The {@link com.feedzai.fos.api.ModelDescriptor} of the model.
+     */
+    public ModelDescriptor getModelDescriptor() {
+        return modelDescriptor;
     }
 
     /**

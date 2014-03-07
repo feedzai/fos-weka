@@ -8,6 +8,7 @@
     "properties":{
         "id":"54c5f947-fb25-46cd-b3af-499376171053",
         "model":"target/test-classes/models/test.model",
+        "format": "BINARY",
         "classIndex":"3"
         }
 }

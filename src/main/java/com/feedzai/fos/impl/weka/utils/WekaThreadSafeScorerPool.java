@@ -84,7 +84,7 @@ public class WekaThreadSafeScorerPool implements WekaThreadSafeScorer {
         try {
             BeanUtils.populate(poolConfig, this.wekaModelConfig.getPoolConfiguration());
 
-            final Cloner<Classifier> cloner = new Cloner<Classifier>(wekaModelConfig.getModel());
+            final Cloner<Classifier> cloner = new Cloner<Classifier>(wekaModelConfig.getModelDescriptor());
             // check that the profided file is in fact a valid classifier object.
             cloner.get();
             this.pool = new AutoPopulateGenericObjectPool<>(new ClassifierFactory(cloner), poolConfig);
@@ -121,6 +121,22 @@ public class WekaThreadSafeScorerPool implements WekaThreadSafeScorer {
         }
     }
 
+    @Override
+    public Classifier getClassifier() throws FOSException {
+        try {
+            Cloner<Classifier> cloner = new Cloner<Classifier>(wekaModelConfig.getModelDescriptor());
+            return cloner.get();
+        } catch (Exception e) {
+            throw new FOSException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Returns the given object to the pool.
+     *
+     * @param pool   The pool to where return the object to.
+     * @param object The object to be returned to the pool.
+     */
     private void returnObject(ObjectPool<Classifier> pool, Classifier object) {
         try {
             pool.returnObject(object);

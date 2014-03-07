@@ -29,6 +29,7 @@ import com.feedzai.fos.impl.weka.config.WekaModelConfig;
 import com.feedzai.fos.impl.weka.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import weka.classifiers.Classifier;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -281,7 +282,25 @@ public class WekaScorer implements Scorer {
         WekaUtils.closeSilently(oldWekaThreadSafeScorer);
     }
 
+    /**
+     * Retrieves the {@link Classifier} for the given UUID.
+     *
+     * @param modelId The UUID of the classifier to retrieve.
+     * @return The {@link Classifier} for the given UUID.
+     * @throws FOSException If it fails to retrieve the classifier.
+     */
+    public Classifier getClassifier(UUID modelId) throws FOSException {
+        return wekaThreadSafeScorers.get(modelId).getClassifier();
+    }
 
+
+    /**
+     * Switches the {@link com.feedzai.fos.impl.weka.WekaScorer} used for the model with the given UUID.
+     *
+     * @param modelId                 The UUID of the model whose scorer to switch.
+     * @param newWekaThreadSafeScorer The score to switch to.
+     * @return The previous scorer associated to the given UUID.
+     */
     private WekaThreadSafeScorer quickSwitch(UUID modelId, WekaThreadSafeScorer newWekaThreadSafeScorer) {
         try { // quick switch - do not do anything inside for performance reasons!!
             reloadModelsLock.writeLock().lock();

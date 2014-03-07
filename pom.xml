@@ -38,6 +38,13 @@
   <dependencyManagement>
     <dependencies>
 
+      <!-- PMML model classes -->
+      <dependency>
+        <groupId>org.jpmml</groupId>
+        <artifactId>pmml-model</artifactId>
+        <version>1.0.21</version>
+      </dependency>
+
       <dependency>
         <groupId>nz.ac.waikato.cms.weka</groupId>
         <artifactId>weka-stable</artifactId>
@@ -54,6 +61,11 @@
   </dependencyManagement>
 
   <dependencies>
+    <!-- PMML model classes -->
+    <dependency>
+      <groupId>org.jpmml</groupId>
+      <artifactId>pmml-model</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -171,5 +183,23 @@
       <scope>test</scope>
     </dependency>
 
+    <dependency>
+      <groupId>hr.irb</groupId>
+      <artifactId>fastRandomForest</artifactId>
+    </dependency>
   </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <forkMode>pertest</forkMode>
+                    <testFailureIgnore>false</testFailureIgnore>
+                    <skip>false</skip>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

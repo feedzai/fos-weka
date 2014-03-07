@@ -115,21 +115,23 @@ public class WekaManagerTest {
 
     @Test
     public void addModelByByteArrayTest() throws FOSException, IOException {
-        wekaManager.addModel(modelConfig, new Cloner<Classifier>(new File("target/test-classes/models/test.model")).getSerialized());
+        ModelDescriptor descriptor = new ModelDescriptor(ModelDescriptor.Format.BINARY, "target/test-classes/models/test.model");
+        wekaManager.addModel(modelConfig, new ModelBinary(new Cloner<Classifier>(descriptor).getSerialized()));
 
         Assert.assertEquals(2, wekaManager.listModels().size());
     }
 
     @Test
     public void addModelByFilenameTest() throws FOSException {
-        wekaManager.addModel(modelConfig, "target/test-classes/models/test.model");
+        wekaManager.addModel(modelConfig, new ModelDescriptor(ModelDescriptor.Format.BINARY, "target/test-classes/models/test.model"));
 
         Assert.assertEquals(2, wekaManager.listModels().size());
     }
 
     @Test
     public void removeModelTest() throws FOSException, IOException {
-        UUID id = wekaManager.addModel(modelConfig, new Cloner<Classifier>(new File("target/test-classes/models/test.model")).getSerialized());
+        ModelDescriptor descriptor = new ModelDescriptor(ModelDescriptor.Format.BINARY, "target/test-classes/models/test.model");
+        UUID id = wekaManager.addModel(modelConfig, new ModelBinary(new Cloner<Classifier>(descriptor).getSerialized()));
 
         Assert.assertEquals(2, wekaManager.listModels().size());
 
@@ -139,7 +141,8 @@ public class WekaManagerTest {
 
     @Test
     public void reconfigureModelByModelTest() throws FOSException, IOException {
-        UUID id = wekaManager.addModel(wekaManager.listModels().get(testUID), new Cloner<Classifier>(new File("target/test-classes/models/test.model")).getSerialized());
+        ModelDescriptor descriptor = new ModelDescriptor(ModelDescriptor.Format.BINARY, "target/test-classes/models/test.model");
+        UUID id = wekaManager.addModel(wekaManager.listModels().get(testUID), new ModelBinary(new Cloner<Classifier>(descriptor).getSerialized()));
 
         wekaManager.reconfigureModel(id, modelConfig);
         Assert.assertEquals(2, wekaManager.listModels().size());
@@ -148,24 +151,26 @@ public class WekaManagerTest {
 
     @Test
     public void reconfigureModelByFileNameTest() throws FOSException, IOException, ClassNotFoundException {
-        UUID id = wekaManager.addModel(new Cloner<>(wekaManager.listModels().get(testUID)).get(), new Cloner<Classifier>(new File("target/test-classes/models/test.model")).getSerialized());
+        ModelDescriptor descriptor = new ModelDescriptor(ModelDescriptor.Format.BINARY, "target/test-classes/models/test.model");
 
-        String filename = "target/test-classes/models/test.model";
+        UUID id = wekaManager.addModel(new Cloner<>(wekaManager.listModels().get(testUID)).get(), new ModelBinary(new Cloner<Classifier>(descriptor).getSerialized()));
 
-        wekaManager.reconfigureModel(id, modelConfig, filename);
+        wekaManager.reconfigureModel(id, modelConfig, descriptor);
 
         Assert.assertEquals(2, wekaManager.listModels().size());
         Assert.assertEquals(modelConfig.getAttributes(), wekaManager.listModels().get(id).getAttributes());
-        Assert.assertEquals(new File(filename).getAbsolutePath(), (wekaManager.listModels().get(id).getProperties().get(WekaModelConfig.MODEL_FILE)));
+        Assert.assertEquals(new File(descriptor.getModelFilePath()).getAbsolutePath(), (wekaManager.listModels().get(id).getProperties().get(WekaModelConfig.MODEL_FILE)));
     }
 
     @Test
     public void reconfigureModelByByteArrayTest() throws FOSException, IOException, ClassNotFoundException {
-        UUID id = wekaManager.addModel(new Cloner<>(wekaManager.listModels().get(testUID)).get(), new Cloner<Classifier>(new File("target/test-classes/models/test.model")).getSerialized());
+        ModelDescriptor descriptor = new ModelDescriptor(ModelDescriptor.Format.BINARY, "target/test-classes/models/test.model");
+
+        UUID id = wekaManager.addModel(new Cloner<>(wekaManager.listModels().get(testUID)).get(), new ModelBinary(new Cloner<Classifier>(descriptor).getSerialized()));
 
         String previousFiles = wekaManager.listModels().get(id).getProperties().get(WekaModelConfig.MODEL_FILE);
 
-        wekaManager.reconfigureModel(id, modelConfig, new Cloner<Classifier>(new File("target/test-classes/models/test.model")).getSerialized());
+        wekaManager.reconfigureModel(id, modelConfig, new ModelBinary(new Cloner<Classifier>(descriptor).getSerialized()));
 
         Assert.assertEquals(2, wekaManager.listModels().size());
         Assert.assertEquals(modelConfig.getAttributes(), wekaManager.listModels().get(id).getAttributes());
@@ -175,7 +180,8 @@ public class WekaManagerTest {
 
     @Test
     public void closeTest() throws FOSException, IOException {
-        UUID id = wekaManager.addModel(modelConfig, new Cloner<Classifier>(new File("target/test-classes/models/test.model")).getSerialized());
+        ModelDescriptor descriptor = new ModelDescriptor(ModelDescriptor.Format.BINARY, "target/test-classes/models/test.model");
+        UUID id = wekaManager.addModel(modelConfig, new ModelBinary(new Cloner<Classifier>(descriptor).getSerialized()));
 
         assertNotNull(wekaManager.listModels().get(id).getProperties().get(WekaModelConfig.MODEL_FILE));
         Assert.assertTrue(new File(wekaManager.listModels().get(id).getProperties().get(WekaModelConfig.MODEL_FILE)).exists());
@@ -185,7 +191,9 @@ public class WekaManagerTest {
 
     @Test
     public void scoreOnNewModel() throws FOSException, IOException {
-        UUID id = wekaManager.addModel(wekaManager.listModels().get(testUID), new Cloner<Classifier>(new File("target/test-classes/models/test.model")).getSerialized());
+        ModelDescriptor descriptor = new ModelDescriptor(ModelDescriptor.Format.BINARY, "target/test-classes/models/test.model");
+
+        UUID id = wekaManager.addModel(wekaManager.listModels().get(testUID), new ModelBinary(new Cloner<Classifier>(descriptor).getSerialized()));
 
         double[] score = wekaManager.getScorer().score(Lists.newArrayList(id), new Object[]{1.5, 0, "gray", "positive"}).get(0);
         assertEquals(2, score.length);
@@ -194,7 +202,8 @@ public class WekaManagerTest {
 
     @Test
     public void scoreOnUpdated() throws FOSException, IOException, ClassNotFoundException {
-        UUID id = wekaManager.addModel(new Cloner<>(wekaManager.listModels().get(testUID)).get(), new Cloner<Classifier>(new File("target/test-classes/models/test.model")).getSerialized());
+        ModelDescriptor descriptor = new ModelDescriptor(ModelDescriptor.Format.BINARY, "target/test-classes/models/test.model");
+        UUID id = wekaManager.addModel(new Cloner<>(wekaManager.listModels().get(testUID)).get(), new ModelBinary(new Cloner<Classifier>(descriptor).getSerialized()));
 
         double[] score = wekaManager.getScorer().score(Lists.newArrayList(id), new Object[]{1.5, 0, "gray", "positive"}).get(0);
         assertEquals(2, score.length);

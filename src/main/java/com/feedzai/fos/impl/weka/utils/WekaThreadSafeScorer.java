@@ -22,12 +22,34 @@
 package com.feedzai.fos.impl.weka.utils;
 
 import com.feedzai.fos.api.FOSException;
+import weka.classifiers.Classifier;
 
 /**
+ * Base interface for scorers.
+ *
  * @author Marco Jorge (marco.jorge@feedzai.com)
  */
 public interface WekaThreadSafeScorer {
+
+    /**
+     * Scores the give instance.
+     *
+     * @param scorable The instance to score.
+     * @return The result of the score.
+     * @throws FOSException If it fails to score the instance.
+     */
     double[] score(Object[] scorable) throws FOSException;
 
+    /**
+     * Retrieves the {@link weka.classifiers.Classifier} associated with this scorer.
+     *
+     * @return The {@link weka.classifiers.Classifier} associated with this scorer.
+     * @throws FOSException If it fails to retrieve the classifier.
+     */
+    Classifier getClassifier() throws FOSException;
+
+    /**
+     * Closes all resources allocated to the scorer (thread pools, etc).
+     */
     void close();
 }

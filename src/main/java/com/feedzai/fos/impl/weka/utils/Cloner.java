@@ -21,9 +21,13 @@
  */
 package com.feedzai.fos.impl.weka.utils;
 
+import com.feedzai.fos.api.FOSException;
+import com.feedzai.fos.api.ModelDescriptor;
 import com.feedzai.fos.common.validation.NotNull;
+import com.feedzai.fos.impl.weka.utils.pmml.PMMLConsumer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.SerializationUtils;
 
 import java.io.*;
 
@@ -78,14 +82,28 @@ public class Cloner<T extends Serializable> {
     /**
      * Creates a clonner by reading a serialized object from file.
      *
-     * @param file the file that contains a serialized object
+     * @param descriptor A {@link com.feedzai.fos.api.ModelDescriptor} with the information about the classifier.
      * @throws IOException when there were problems reading the file
      */
-    public Cloner(File file) throws IOException {
-        checkNotNull(file, "Source file cannot be null");
+    public Cloner(ModelDescriptor descriptor) throws IOException {
+        checkNotNull(descriptor.getModelFilePath(), "Source file cannot be null");
+
+        File file = new File(descriptor.getModelFilePath());
+
         checkArgument(file.exists(), "Source file '"+ file.getAbsolutePath() + "' must exist");
 
-        this.serializedObject = FileUtils.readFileToByteArray(file);
+        switch (descriptor.getFormat()) {
+            case BINARY:
+                this.serializedObject = FileUtils.readFileToByteArray(file);
+                break;
+            case PMML:
+                try {
+                    this.serializedObject = SerializationUtils.serialize(PMMLConsumer.consume(file));
+                } catch (FOSException e) {
+                    throw new RuntimeException("Failed to consume PMML file.", e);
+                }
+                break;
+        }
     }
 
     /**

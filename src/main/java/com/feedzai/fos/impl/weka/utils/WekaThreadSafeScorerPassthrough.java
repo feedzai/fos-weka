@@ -74,7 +74,7 @@ public class WekaThreadSafeScorerPassthrough implements WekaThreadSafeScorer {
         this.instances.setClassIndex(this.wekaModelConfig.getClassIndex());
 
         try {
-            this.classifier = new Cloner<Classifier>(wekaModelConfig.getModel()).get();
+            this.classifier = new Cloner<Classifier>(wekaModelConfig.getModelDescriptor()).get();
         } catch (Exception e) {
             throw new FOSException(e);
         }
@@ -92,6 +92,11 @@ public class WekaThreadSafeScorerPassthrough implements WekaThreadSafeScorer {
     @Override
     public double[] score(Object[] scorable) throws FOSException {
         return WekaUtils.score(classifier, scorable, instanceSetters, instances, attributes);
+    }
+
+    @Override
+    public Classifier getClassifier() throws FOSException {
+        return classifier;
     }
 
     /**

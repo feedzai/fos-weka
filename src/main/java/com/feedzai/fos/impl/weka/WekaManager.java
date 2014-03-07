@@ -26,6 +26,7 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.serializers.CollectionSerializer;
+import com.fasterxml.jackson.databind.JsonSerializable;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.feedzai.fos.api.*;
 import com.feedzai.fos.common.kryo.CustomUUIDSerializer;
@@ -35,13 +36,19 @@ import com.feedzai.fos.common.validation.NotNull;
 import com.feedzai.fos.impl.weka.config.WekaManagerConfig;
 import com.feedzai.fos.impl.weka.config.WekaModelConfig;
 import com.feedzai.fos.impl.weka.utils.WekaUtils;
+import com.feedzai.fos.impl.weka.utils.pmml.PMMLProducer;
 import com.feedzai.fos.impl.weka.utils.setter.InstanceSetter;
 import com.google.common.io.Files;
+import hr.irb.fastRandomForest.FastRandomForest;
+import hr.irb.fastRandomForest.FastRandomForestPMMLProducer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import weka.classifiers.Classifier;
+import weka.classifiers.trees.RandomForest;
+import weka.classifiers.trees.RandomForestPMMLProducer;
 import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
@@ -53,6 +60,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.feedzai.fos.api.util.ManagerUtils.*;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -175,30 +183,17 @@ public class WekaManager implements Manager {
         }
     }
 
-    /**
-     * Persists the model to disk.
-     *
-     * @param id    the id of the model
-     * @param model the serialized classifier
-     * @return the File where the model was written
-     * @throws IOException if saving to disk was not possible
-     */
-    private File createModelFile(UUID id, byte[] model) throws IOException {
-        File file = File.createTempFile(id.toString(), ".model", wekaManagerConfig.getHeaderLocation());
-        FileUtils.writeByteArrayToFile(file, model);
-        return file;
-    }
-
     @Override
-    public synchronized UUID addModel(ModelConfig config, byte[] model) throws FOSException {
+    public synchronized UUID addModel(ModelConfig config, Model model) throws FOSException {
         try {
             UUID uuid = getUuid(config);
 
-            File file = createModelFile(uuid, model);
+            File modelFile = createModelFile(wekaManagerConfig.getHeaderLocation(), uuid, model);
 
             WekaModelConfig wekaModelConfig = new WekaModelConfig(config, wekaManagerConfig);
             wekaModelConfig.setId(uuid);
-            wekaModelConfig.setModel(file);
+
+            wekaModelConfig.setModelDescriptor(getModelDescriptor(model, modelFile));
 
             modelConfigs.put(uuid, wekaModelConfig);
             wekaScorer.addOrUpdate(wekaModelConfig);
@@ -211,31 +206,13 @@ public class WekaManager implements Manager {
         }
     }
 
-    /**
-     * Obtain model UUID from ModelConfig if defined or generate a new random uuid
-     *
-     * @param config Model Configuration
-     * @return new Model UUID
-     * @throws FOSException
-     */
-    private UUID getUuid(ModelConfig config) throws FOSException {
-        String suuid = config.getProperty("UUID");
-        UUID uuid;
-        if (suuid == null) {
-            uuid = UUID.randomUUID();
-        } else {
-            uuid = UUID.fromString(suuid);
-        }
-        return uuid;
-    }
-
     @Override
-    public synchronized UUID addModel(ModelConfig config, @NotBlank String localFileName) throws FOSException {
+    public synchronized UUID addModel(ModelConfig config, @NotBlank ModelDescriptor descriptor) throws FOSException {
         UUID uuid = getUuid(config);
 
         WekaModelConfig wekaModelConfig = new WekaModelConfig(config, wekaManagerConfig);
         wekaModelConfig.setId(uuid);
-        wekaModelConfig.setModel(new File(localFileName));
+        wekaModelConfig.setModelDescriptor(descriptor);
 
         modelConfigs.put(uuid, wekaModelConfig);
         wekaScorer.addOrUpdate(wekaModelConfig);
@@ -276,13 +253,14 @@ public class WekaManager implements Manager {
     }
 
     @Override
-    public synchronized void reconfigureModel(UUID modelId, ModelConfig modelConfig, byte[] model) throws FOSException {
+    public synchronized void reconfigureModel(UUID modelId, ModelConfig modelConfig, Model model) throws FOSException {
         try {
-            File file = createModelFile(modelId, model);
+            File modelFile = createModelFile(wekaManagerConfig.getHeaderLocation(), modelId, model);
 
             WekaModelConfig wekaModelConfig = this.modelConfigs.get(modelId);
             wekaModelConfig.update(modelConfig);
-            wekaModelConfig.setModel(file);
+            ModelDescriptor descriptor = getModelDescriptor(model, modelFile);
+            wekaModelConfig.setModelDescriptor(descriptor);
 
             wekaScorer.addOrUpdate(wekaModelConfig);
             saveConfiguration();
@@ -293,12 +271,12 @@ public class WekaManager implements Manager {
     }
 
     @Override
-    public synchronized void reconfigureModel(UUID modelId, ModelConfig modelConfig, @NotBlank String localFileName) throws FOSException {
-        File file = new File(localFileName);
+    public synchronized void reconfigureModel(UUID modelId, ModelConfig modelConfig, @NotBlank ModelDescriptor descriptor) throws FOSException {
+        File file = new File(descriptor.getModelFilePath());
 
         WekaModelConfig wekaModelConfig = this.modelConfigs.get(modelId);
         wekaModelConfig.update(modelConfig);
-        wekaModelConfig.setModel(file);
+        wekaModelConfig.setModelDescriptor(descriptor);
 
         wekaScorer.addOrUpdate(wekaModelConfig);
         saveConfiguration();
@@ -323,19 +301,19 @@ public class WekaManager implements Manager {
 
     @Override
     public synchronized UUID trainAndAdd(ModelConfig config, List<Object[]> instances) throws FOSException {
-        byte[] serializedClassifier = train(config, instances);
-        return addModel(config, serializedClassifier);
+        Model trainedModel = train(config, instances);
+        return addModel(config, trainedModel);
     }
 
     @Override
     public synchronized UUID trainAndAddFile(ModelConfig config, String path) throws FOSException {
-        byte[] serializedClassifier = trainFile(config, path);
-        return addModel(config, serializedClassifier);
+        Model trainedModel = trainFile(config, path);
+        return addModel(config, trainedModel);
     }
 
 
     @Override
-    public byte[] train(ModelConfig config, List<Object[]> instances) throws FOSException {
+    public Model train(ModelConfig config, List<Object[]> instances) throws FOSException {
         checkNotNull(instances, "Instances must not supplied");
         checkNotNull(config, "Config must not be supplied");
         long time = System.currentTimeMillis();
@@ -350,15 +328,18 @@ public class WekaManager implements Manager {
             wekaInstances.add(WekaUtils.objectArray2Instance(objects, instanceSetters, attributes));
         }
 
-        final byte[] bytes = serializeClassifier(wekaModelConfig, classifier, wekaInstances);
+        trainClassifier(wekaModelConfig.getClassIndex(), classifier, wekaInstances);
+
+        final byte[] bytes = SerializationUtils.serialize(classifier);
 
         logger.debug("Trained model with {} instances in {}ms", instances.size(), (System.currentTimeMillis() - time));
-        return bytes;
+
+        return new ModelBinary(bytes);
 
     }
 
     @Override
-    public byte[] trainFile(ModelConfig config, String path) throws FOSException {
+    public Model trainFile(ModelConfig config, String path) throws FOSException {
         checkNotNull(path, "Config must be supplied");
         checkNotNull(path, "Path must be supplied");
         long time = System.currentTimeMillis();
@@ -394,9 +375,12 @@ public class WekaManager implements Manager {
             wekaInstances.add(instance);
         }
 
-        final byte[] bytes = serializeClassifier(wekaModelConfig, classifier, wekaInstances);
+        trainClassifier(wekaModelConfig.getClassIndex(), classifier, wekaInstances);
+
+        final byte[] bytes = SerializationUtils.serialize(classifier);
         logger.debug("Trained model with {} instances in {}ms", instances.size(), (System.currentTimeMillis() - time));
-        return bytes;
+
+        return new ModelBinary( bytes);
     }
 
     /**
@@ -420,25 +404,42 @@ public class WekaManager implements Manager {
         saveConfiguration();
     }
 
-    private byte[] serializeClassifier(WekaModelConfig modelConfig, Classifier classifier, Instances wekaInstances) throws FOSException {
-        byte[] serialized;
+    /**
+     * Returns a new {@link com.feedzai.fos.api.ModelDescriptor} for the given {@code model} and {@code file}.
+     *
+     * @param model     The {@link Model} with the classifier.
+     * @param modelFile The file where the model will be saved.
+     * @return          A new {@link com.feedzai.fos.api.ModelDescriptor}
+     * @throws FOSException If the given {@code model} is of an unknown instance.
+     */
+    private ModelDescriptor getModelDescriptor(Model model, File modelFile) throws FOSException {
+        if (model instanceof ModelBinary) {
+            return new ModelDescriptor(ModelDescriptor.Format.BINARY, modelFile.getAbsolutePath());
+        } else if (model instanceof ModelPMML) {
+            return new ModelDescriptor(ModelDescriptor.Format.PMML, modelFile.getAbsolutePath());
+        } else {
+            throw new FOSException("Unsupported Model type '" + model.getClass().getSimpleName() + "'.");
+        }
+    }
+
+    /**
+     * Trains the given {@code classifier} using the given {@link com.feedzai.fos.impl.weka.config.WekaModelConfig modelConfig}
+     * and {@link weka.core.Instances wekaInstances}.
+     *
+     * @param classIndex    The index of the class.
+     * @param classifier    The classifier to be trained.
+     * @param wekaInstances The training instances.
+     * @throws FOSException If it fails to train the classifier.
+     */
+    private void trainClassifier(int classIndex, Classifier classifier, Instances wekaInstances) throws FOSException {
+        wekaInstances.setClassIndex(classIndex == -1 ? wekaInstances.numAttributes() - 1 : classIndex);
 
         try {
-            int index = modelConfig.getClassIndex();
-            wekaInstances.setClassIndex(index == -1 ? wekaInstances.numAttributes() - 1 : index);
             classifier.buildClassifier(wekaInstances);
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(bos);
-            oos.writeObject(classifier);
-            oos.close();
-            serialized = bos.toByteArray();
-
         } catch (Exception e) {
             throw new FOSException(e.getMessage(), e);
         }
-        return serialized;
     }
-
 
     @Override
     public void save(UUID uuid, String savepath) throws FOSException {
@@ -449,6 +450,15 @@ public class WekaManager implements Manager {
         } catch (Exception e) {
             throw new FOSException("Unable to save model " + uuid + " to " + savepath, e);
         }
+    }
+
+    @Override
+    public void saveAsPMML(UUID uuid, String saveFilePath, boolean compress) throws FOSException {
+        Classifier classifier = wekaScorer.getClassifier(uuid);
+
+        File target = new File(saveFilePath);
+
+        PMMLProducer.produce(classifier, target, compress);
     }
 
     /**

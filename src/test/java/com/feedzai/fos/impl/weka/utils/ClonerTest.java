@@ -21,6 +21,7 @@
  */
 package com.feedzai.fos.impl.weka.utils;
 
+import com.feedzai.fos.api.ModelDescriptor;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -49,7 +50,9 @@ public class ClonerTest {
 
     @Test
     public void fromFileTest() throws IOException, ClassNotFoundException {
-        Cloner<Classifier> cloner = new Cloner<Classifier>(new File("target/test-classes/models/test.model"));
+        ModelDescriptor descriptor = new ModelDescriptor(ModelDescriptor.Format.BINARY, "target/test-classes/models/test.model");
+
+        Cloner<Classifier> cloner = new Cloner<Classifier>(descriptor);
         Classifier serializable1 = cloner.get();
         Classifier serializable2 = cloner.get();
 
