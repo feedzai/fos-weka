@@ -50,6 +50,12 @@
         <artifactId>weka-stable</artifactId>
         <version>3.6.9</version>
       </dependency>
+
+      <dependency>
+        <groupId>hr.irb</groupId>
+        <artifactId>fastRandomForest</artifactId>
+        <version>0.98</version>
+      </dependency>
       
     </dependencies>
   </dependencyManagement>
@@ -177,6 +183,10 @@
       <scope>test</scope>
     </dependency>
 
+    <dependency>
+      <groupId>hr.irb</groupId>
+      <artifactId>fastRandomForest</artifactId>
+    </dependency>
   </dependencies>
 
     <build>

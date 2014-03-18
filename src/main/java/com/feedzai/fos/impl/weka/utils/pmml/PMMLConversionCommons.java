@@ -22,7 +22,11 @@
 package com.feedzai.fos.impl.weka.utils.pmml;
 
 import com.feedzai.fos.impl.weka.exception.PMMLConversionException;
+import com.feedzai.fos.impl.weka.exception.WekaClassifierException;
 import com.google.common.collect.ImmutableList;
+import hr.irb.fastRandomForest.FastRandomForest;
+import hr.irb.fastRandomForest.FastRandomForestPMMLConsumer;
+import hr.irb.fastRandomForest.FastRandomForestPMMLProducer;
 import org.dmg.pmml.*;
 import weka.classifiers.Classifier;
 import weka.classifiers.trees.RandomForest;
@@ -61,6 +65,26 @@ public final class PMMLConversionCommons {
             @Override
             public Class<? extends Classifier> getClassifierClass() {
                 return RandomForest.class;
+            }
+        },
+
+        /**
+         * {@link hr.irb.fastRandomForest.FastRandomForest}.
+         */
+        FAST_RANDOM_FOREST {
+            @Override
+            public PMMLConsumer getPMMLConsumer() {
+                return new FastRandomForestPMMLConsumer();
+            }
+
+            @Override
+            public PMMLProducer getPMMLProducer() {
+                return new FastRandomForestPMMLProducer();
+            }
+
+            @Override
+            public Class<? extends Classifier> getClassifierClass() {
+                return FastRandomForest.class;
             }
         };
 
