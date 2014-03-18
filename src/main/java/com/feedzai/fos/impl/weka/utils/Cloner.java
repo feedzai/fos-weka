@@ -24,7 +24,7 @@ package com.feedzai.fos.impl.weka.utils;
 import com.feedzai.fos.api.FOSException;
 import com.feedzai.fos.api.ModelDescriptor;
 import com.feedzai.fos.common.validation.NotNull;
-import com.feedzai.fos.impl.weka.utils.pmml.PMMLConsumer;
+import com.feedzai.fos.impl.weka.utils.pmml.PMMLConsumers;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.SerializationUtils;
@@ -98,7 +98,7 @@ public class Cloner<T extends Serializable> {
                 break;
             case PMML:
                 try {
-                    this.serializedObject = SerializationUtils.serialize(PMMLConsumer.consume(file));
+                    this.serializedObject = SerializationUtils.serialize(PMMLConsumers.consume(file));
                 } catch (FOSException e) {
                     throw new RuntimeException("Failed to consume PMML file.", e);
                 }

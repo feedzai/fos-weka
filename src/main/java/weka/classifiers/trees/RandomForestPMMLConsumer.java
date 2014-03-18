@@ -22,6 +22,7 @@
 package weka.classifiers.trees;
 
 import com.feedzai.fos.impl.weka.exception.PMMLConversionException;
+import com.feedzai.fos.impl.weka.utils.pmml.PMMLConsumer;
 import org.dmg.pmml.*;
 import weka.classifiers.Classifier;
 import weka.classifiers.RandomForestUtils;
@@ -41,18 +42,10 @@ import static com.feedzai.fos.impl.weka.utils.pmml.PMMLConversionCommons.*;
  * @author Ricardo Ferreira (ricardo.ferreira@feedzai.com)
  * @since 1.0.4
  */
-public class RandomForestPMMLConsumer {
+public class RandomForestPMMLConsumer implements PMMLConsumer<RandomForest> {
 
-    /**
-     * Builds a new {@link weka.classifiers.trees.RandomForest Weka RandomForest} from the given PMML String.
-     * <p/>
-     * The given {@code pmmlString} should be a valid PMML.
-     *
-     * @param pmmlString A String representing the PMML that is to be converted to a {@link weka.classifiers.trees.RandomForest Weka RandomForest}.
-     * @return A new {@link weka.classifiers.trees.RandomForest Weka RandomForest}.
-     * @throws Exception If it fails to convert the given PMML to a RandomForest.
-     */
-    public static RandomForest consume(String pmmlString) throws PMMLConversionException {
+    @Override
+    public RandomForest consume(String pmmlString) throws PMMLConversionException {
         PMML pmml = null;
         try {
             pmml = IOUtil.unmarshal(new ByteArrayInputStream(pmmlString.getBytes()));
@@ -62,14 +55,8 @@ public class RandomForestPMMLConsumer {
         return consume(pmml);
     }
 
-    /**
-     * Builds a new {@link weka.classifiers.trees.RandomForest Weka RandomForest} from the given file.
-     *
-     * @param file The file with the PMML representation of the classifier.
-     * @return A new {@link weka.classifiers.trees.RandomForest Weka RandomForest}.
-     * @throws Exception If it fails to convert the given file to a RandomForest.
-     */
-    public static RandomForest consume(File file) throws PMMLConversionException {
+    @Override
+    public RandomForest consume(File file) throws PMMLConversionException {
         PMML pmml = null;
         try {
             pmml = IOUtil.unmarshal(file);
@@ -79,14 +66,8 @@ public class RandomForestPMMLConsumer {
         return consume(pmml);
     }
 
-    /**
-     * Builds a new {@link weka.classifiers.trees.RandomForest Weka RandomForest} from the given {@link org.dmg.pmml.PMML}.
-     *
-     * @param pmml The {@link org.dmg.pmml.PMML} which is to be converted to a {@link weka.classifiers.trees.RandomForest Weka RandomForest}.
-     * @return A new {@link weka.classifiers.trees.RandomForest Weka RandomForest}.
-     * @throws Exception If it fails to convert the given PMML to a RandomForest.
-     */
-    public static RandomForest consume(PMML pmml) throws PMMLConversionException {
+    @Override
+    public RandomForest consume(PMML pmml) throws PMMLConversionException {
         MiningModel miningModel = getMiningModel(pmml);
         List<Segment> segments = miningModel.getSegmentation().getSegments();
 

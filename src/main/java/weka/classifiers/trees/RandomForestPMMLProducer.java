@@ -22,6 +22,7 @@
 package weka.classifiers.trees;
 
 import com.feedzai.fos.impl.weka.exception.PMMLConversionException;
+import com.feedzai.fos.impl.weka.utils.pmml.PMMLProducer;
 import org.dmg.pmml.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +45,7 @@ import static com.feedzai.fos.impl.weka.utils.pmml.PMMLConversionCommons.*;
  * @author Ricardo Ferreira (ricardo.ferreira@feedzai.com)
  * @since 1.0.4
  */
-public class RandomForestPMMLProducer {
+public class RandomForestPMMLProducer implements PMMLProducer<RandomForest> {
 
     /**
      * The logger.
@@ -62,15 +63,8 @@ public class RandomForestPMMLProducer {
     private static final String MODEL_NAME = ALGORITHM_NAME+"_Model";
 
 
-    /**
-     * Converts the given {@link weka.classifiers.trees.RandomForest} instance to PMML and
-     * saves the result in the given {@link File}.
-     *
-     * @param randomForestClassifier The {@link weka.classifiers.trees.RandomForest} instance to convert to PMML.
-     * @param targetFile             The file where to save the resulting PMML.
-     * @throws PMMLConversionException If if fails to convert the classifier.
-     */
-    public static void produce(RandomForest randomForestClassifier, File targetFile) throws PMMLConversionException {
+    @Override
+    public void produce(RandomForest randomForestClassifier, File targetFile) throws PMMLConversionException {
         PMML pmml = produce(randomForestClassifier);
         try {
             IOUtil.marshal(pmml, targetFile);
@@ -79,14 +73,8 @@ public class RandomForestPMMLProducer {
         }
     }
 
-    /**
-     * Converts the given {@link weka.classifiers.trees.RandomForest} instance to PMML and
-     * saves the result in the given {@link File}.
-     *
-     * @param randomForestClassifier The {@link weka.classifiers.trees.RandomForest} instance to convert to PMML.
-     * @return A {@link org.dmg.pmml.PMML} instance representing the PMML structure.
-     */
-    public static PMML produce(RandomForest randomForestClassifier) {
+    @Override
+    public PMML produce(RandomForest randomForestClassifier) {
         // Get the Instances from the first tree in the forest.
         Classifier[] baggingClassifiers = RandomForestUtils.getBaggingClassifiers(randomForestClassifier.m_bagger);
         Instances data = ((RandomTree) baggingClassifiers[0]).m_Info;

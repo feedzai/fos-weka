@@ -26,7 +26,6 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.serializers.CollectionSerializer;
-import com.fasterxml.jackson.databind.JsonSerializable;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.feedzai.fos.api.*;
 import com.feedzai.fos.common.kryo.CustomUUIDSerializer;
@@ -36,19 +35,15 @@ import com.feedzai.fos.common.validation.NotNull;
 import com.feedzai.fos.impl.weka.config.WekaManagerConfig;
 import com.feedzai.fos.impl.weka.config.WekaModelConfig;
 import com.feedzai.fos.impl.weka.utils.WekaUtils;
-import com.feedzai.fos.impl.weka.utils.pmml.PMMLProducer;
+import com.feedzai.fos.impl.weka.utils.pmml.PMMLProducers;
 import com.feedzai.fos.impl.weka.utils.setter.InstanceSetter;
 import com.google.common.io.Files;
-import hr.irb.fastRandomForest.FastRandomForest;
-import hr.irb.fastRandomForest.FastRandomForestPMMLProducer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import weka.classifiers.Classifier;
-import weka.classifiers.trees.RandomForest;
-import weka.classifiers.trees.RandomForestPMMLProducer;
 import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
@@ -458,7 +453,7 @@ public class WekaManager implements Manager {
 
         File target = new File(saveFilePath);
 
-        PMMLProducer.produce(classifier, target, compress);
+        PMMLProducers.produce(classifier, target, compress);
     }
 
     /**

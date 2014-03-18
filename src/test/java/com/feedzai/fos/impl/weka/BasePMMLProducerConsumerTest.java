@@ -21,13 +21,9 @@
  */
 package com.feedzai.fos.impl.weka;
 
-import com.feedzai.fos.impl.weka.utils.pmml.PMMLConsumer;
-import com.feedzai.fos.impl.weka.utils.pmml.PMMLProducer;
-import org.dmg.pmml.IOUtil;
-import org.dmg.pmml.PMML;
+import com.feedzai.fos.impl.weka.utils.pmml.PMMLConsumers;
+import com.feedzai.fos.impl.weka.utils.pmml.PMMLProducers;
 import weka.classifiers.Classifier;
-import weka.classifiers.trees.RandomForest;
-import weka.classifiers.trees.RandomForestPMMLProducer;
 import weka.core.Instances;
 
 import java.io.BufferedReader;
@@ -62,9 +58,9 @@ public abstract class BasePMMLProducerConsumerTest {
 
         System.err.println("writing to file: " + file.getAbsolutePath());
 
-        PMMLProducer.produce(classifier, file, false);
+        PMMLProducers.produce(classifier, file, false);
 
-        Classifier fromPmml = PMMLConsumer.consume(file);
+        Classifier fromPmml = PMMLConsumers.consume(file);
 
         for (int i = 0; i < instances.numInstances(); i++) {
             String wekaDist = Arrays.toString(classifier.distributionForInstance(instances.instance(i)));

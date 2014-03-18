@@ -22,109 +22,45 @@
 package com.feedzai.fos.impl.weka.utils.pmml;
 
 import com.feedzai.fos.impl.weka.exception.PMMLConversionException;
-import hr.irb.fastRandomForest.FastRandomForestPMMLConsumer;
-import org.dmg.pmml.Extension;
-import org.dmg.pmml.IOUtil;
 import org.dmg.pmml.PMML;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import weka.classifiers.Classifier;
-import weka.classifiers.trees.RandomForestPMMLConsumer;
 
-import java.io.*;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.ZipInputStream;
-
-import static com.feedzai.fos.impl.weka.utils.pmml.PMMLConversionCommons.ALGORITHM_EXTENSION_ELEMENT;
-import static com.feedzai.fos.impl.weka.utils.pmml.PMMLConversionCommons.Algorithm;
+import java.io.File;
 
 /**
- * A PMML consumer for Weka classifiers.
+ * A common interface to the PMML consumers of different {@link Classifier} implementations.
  *
  * @author Ricardo Ferreira (ricardo.ferreira@feedzai.com)
  * @since 1.0.4
  */
-public class PMMLConsumer {
+public interface PMMLConsumer<T extends Classifier> {
 
     /**
-     * The logger.
+     * Builds a new classifier from the given PMML String.
+     * <p/>
+     * The given {@code pmmlString} should be a valid PMML.
+     *
+     * @param pmmlString A String representing the PMML that is to be converted to a {@link hr.irb.fastRandomForest.FastRandomForest}.
+     * @return A new {@link Classifier} instance.
+     * @throws Exception If it fails to convert the given PMML to a {@link Classifier}.
      */
-    private final static Logger logger = LoggerFactory.getLogger(PMMLConsumer.class);
-
+    T consume(String pmmlString) throws PMMLConversionException;
 
     /**
-     * Consumes the PMML in the given file and converts it to a Weka {@link Classifier}.
+     * Builds a new classifier from the given file.
      *
      * @param file The file with the PMML representation of the classifier.
-     * @return A Weka {@link Classifier}.
-     * @throws PMMLConversionException If if fails to consume the PMML file.
+     * @return A new {@link Classifier} instance.
+     * @throws Exception If it fails to convert the given file to a {@link Classifier}.
      */
-    public static Classifier consume(File file) throws PMMLConversionException {
-        PMML pmml = null;
-        try {
-            if (isGzipped(file)) {
-                logger.debug("Consuming GZipped PMML file '{}'.", file.getAbsolutePath());
-
-                try (FileInputStream fis = new FileInputStream(file);
-                     GZIPInputStream gzipInputStream = new GZIPInputStream(fis))
-                {
-                    pmml = IOUtil.unmarshal(gzipInputStream);
-                }
-            } else {
-                logger.debug("Consuming PMML file '{}'.", file.getAbsolutePath());
-
-                pmml = IOUtil.unmarshal(file);
-            }
-        } catch (Exception e) {
-            throw new PMMLConversionException("Failed to unmarshal PMML file '" + file + "'. Make sure the file is a valid PMML.", e);
-        }
-
-        Algorithm algorithm = getAlgorithm(pmml);
-
-        logger.debug("Consumed PMML file using algorithm {}.", algorithm);
-
-        switch (algorithm) {
-            case FAST_RANDOM_FOREST:
-                return FastRandomForestPMMLConsumer.consume(pmml);
-            case RANDOM_FOREST:
-                return RandomForestPMMLConsumer.consume(pmml);
-            default:
-                throw new PMMLConversionException("Unknown algorithm '" + algorithm + "'. The PMML won't be parsed.");
-        }
-    }
+    T consume(File file) throws PMMLConversionException;
 
     /**
-     * Checks if the given file is in GZIP format.
-     * <p/>
-     * It checks this by checking the head for the {@link java.util.zip.GZIPInputStream#GZIP_MAGIC} number.
+     * Builds a new classifier from the given {@link org.dmg.pmml.PMML}.
      *
-     * @param file The file to check.
-     * @return {@code true} if the file is in GZIP format, or {@code false}
-     * @throws IOException
+     * @param pmml The {@link org.dmg.pmml.PMML} which is to be converted to a {@link hr.irb.fastRandomForest.FastRandomForest}.
+     * @return A new {@link Classifier} instance.
+     * @throws Exception If it fails to convert the given PMML to a {@link Classifier}.
      */
-    private static boolean isGzipped(File file) throws IOException {
-        FileInputStream fileInputStream = new FileInputStream(file);
-
-        int head = (fileInputStream.read() & 0xff) | ((fileInputStream.read() << 8 ) & 0xff00 );
-
-        return GZIPInputStream.GZIP_MAGIC == head;
-    }
-
-    /**
-     * Retrieves the {@link com.feedzai.fos.impl.weka.utils.pmml.PMMLConversionCommons.Algorithm} represented
-     * as a PMML extension named {@link com.feedzai.fos.impl.weka.utils.pmml.PMMLConversionCommons#ALGORITHM_EXTENSION_ELEMENT}.
-     *
-     * @param pmml The {@link PMML}.
-     * @return The {@link com.feedzai.fos.impl.weka.utils.pmml.PMMLConversionCommons.Algorithm} in the PMML.
-     * @throws PMMLConversionException If it fails to retrieve the algorithm from the given PPML.
-     */
-    private static Algorithm getAlgorithm(PMML pmml) throws PMMLConversionException {
-        for (Extension extension : pmml.getExtensions()) {
-            if (ALGORITHM_EXTENSION_ELEMENT.equals(extension.getName())) {
-                return Algorithm.valueOf(extension.getValue());
-            }
-        }
-
-        throw new PMMLConversionException("Couldn't find '" + ALGORITHM_EXTENSION_ELEMENT + "' extension element in PMML.");
-    }
+    T consume(PMML pmml) throws PMMLConversionException;
 }

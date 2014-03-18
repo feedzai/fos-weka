@@ -21,8 +21,13 @@
  */
 package com.feedzai.fos.impl.weka.utils.pmml;
 
+import com.feedzai.fos.impl.weka.exception.PMMLConversionException;
 import com.google.common.collect.ImmutableList;
 import org.dmg.pmml.*;
+import weka.classifiers.Classifier;
+import weka.classifiers.trees.RandomForest;
+import weka.classifiers.trees.RandomForestPMMLConsumer;
+import weka.classifiers.trees.RandomForestPMMLProducer;
 import weka.core.*;
 
 import java.util.List;
@@ -42,12 +47,65 @@ public final class PMMLConversionCommons {
         /**
          * Weka's own {@link weka.classifiers.trees.RandomForest}.
          */
-        RANDOM_FOREST,
+        RANDOM_FOREST {
+            @Override
+            public PMMLConsumer getPMMLConsumer() {
+                return new RandomForestPMMLConsumer();
+            }
+
+            @Override
+            public PMMLProducer getPMMLProducer() {
+                return new RandomForestPMMLProducer();
+            }
+
+            @Override
+            public Class<? extends Classifier> getClassifierClass() {
+                return RandomForest.class;
+            }
+        };
 
         /**
-         * {@link hr.irb.fastRandomForest.FastRandomForest}.
+         * Retrieves a {@link com.feedzai.fos.impl.weka.utils.pmml.PMMLConsumer} instance
+         * used to convert PMML into classifiers of this type.
+         *
+         * @return A {@link com.feedzai.fos.impl.weka.utils.pmml.PMMLConsumer} instance.
          */
-        FAST_RANDOM_FOREST;
+        public abstract PMMLConsumer getPMMLConsumer();
+
+        /**
+         * Retrieves a {@link com.feedzai.fos.impl.weka.utils.pmml.PMMLProducer} instance
+         * used to convert classifiers of this type into PMML.
+         *
+         * @return A {@link com.feedzai.fos.impl.weka.utils.pmml.PMMLProducer} instance.
+         */
+        public abstract PMMLProducer getPMMLProducer();
+
+        /**
+         * Retrieves the {@link weka.classifiers.Classifier} class represented by this type.
+         *
+         * @return The class of the classifier represented by this type.
+         */
+        public abstract Class<? extends Classifier> getClassifierClass();
+
+        /**
+         * Retrieves the {@link com.feedzai.fos.impl.weka.utils.pmml.PMMLConversionCommons.Algorithm} associated
+         * with the given classifier.
+         *
+         * @param classifier The classifier for which to retrieve the associated {@link com.feedzai.fos.impl.weka.utils.pmml.PMMLConversionCommons.Algorithm}.
+         * @return The {@link Algorithm}.
+         * @throws PMMLConversionException If the classifier has no corresponding {@link com.feedzai.fos.impl.weka.utils.pmml.PMMLConversionCommons.Algorithm}.
+         */
+        public static Algorithm fromClassifier(Classifier classifier) throws PMMLConversionException {
+            Class klass = classifier.getClass();
+
+            for (Algorithm algorithm : Algorithm.values()) {
+                if (klass.equals(algorithm.getClassifierClass())) {
+                    return algorithm;
+                }
+            }
+
+            throw new PMMLConversionException("Unsupported classifier '" + classifier.getClass().getSimpleName() + "'.");
+        }
     }
 
     /**
