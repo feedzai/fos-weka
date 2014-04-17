@@ -142,11 +142,25 @@ public final class PMMLConversionCommons {
      */
     public static void addScoreDistribution(Node pmmlNode, double[] classDistribution, Instances instances) {
         if (classDistribution != null) {
+
+            double sum = 0.0;
+            for (int i = 0; i < classDistribution.length; i++) {
+                sum += classDistribution[i];
+            }
+
             for (int i = 0; i < classDistribution.length; i++) {
                 String value = instances.classAttribute().value(i);
-                double distribution = classDistribution[i];
+                double probability;
+
+                if (sum != 0.0) {
+                    probability = classDistribution[i]/sum;
+                } else {
+                    probability = 1.0/classDistribution.length;
+                }
+
                 ScoreDistribution scoreDistribution = new ScoreDistribution(value, 0);
-                scoreDistribution.withConfidence(distribution);
+                scoreDistribution.withConfidence(classDistribution[i]);
+                scoreDistribution.withProbability(probability);
                 pmmlNode.withScoreDistributions(scoreDistribution);
             }
         }
