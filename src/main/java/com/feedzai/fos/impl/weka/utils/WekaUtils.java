@@ -66,17 +66,13 @@ public class WekaUtils {
             Class<?> type = instanceField.getClass();
             if (type == CategoricalAttribute.class) {
                 CategoricalAttribute categorical = (CategoricalAttribute) instanceField;
-                if (idx == classIndex) {
-                    categorical.setClass();
-                }
                 List<String> instances = categorical.getCategoricalInstances();
-
 
                 FastVector categoricalInstances = new FastVector(instances.size());
                 for (String categoricalInstance : instances) {
                     categoricalInstances.addElement(categoricalInstance);
                 }
-                // Default values should only be set for features
+
                 attribute = new weka.core.Attribute(instanceField.getName(), categoricalInstances, idx);
 
             } else if (type == NumericAttribute.class) {
@@ -139,7 +135,7 @@ public class WekaUtils {
             instanceSetters[idx] = new InstanceSetter() {
                 @Override
                 public void set(Instance instance, weka.core.Attribute attribute, Object value) throws FOSException {
-                    instance.setValue(attribute, att.parse(value, type));
+                    instance.setValue(attribute, att.parseOrMissing(value));
                 }
             };
         }

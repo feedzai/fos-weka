@@ -245,6 +245,5 @@ public class WekaManagerTest {
         assertEquals("Kryo Must return 1 score", 1, kryoScores.size());
         assertEquals("Scores must be equal", kryoScores.get(0).length, scores.get(0).length);
         assertEquals("Scores must be equal", kryoScores.get(0)[0], scores.get(0)[0], 1e-6);
-
     }
 }

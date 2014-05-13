@@ -43,7 +43,6 @@ public class CreateTestModel {
 
         // Declare a nominal attribute along with its values
         FastVector fvNominalVal = new FastVector(4);
-        fvNominalVal.addElement(CategoricalAttribute.DEFAULT_UNKNOWN_REPLACEMENT);
         fvNominalVal.addElement("blue");
         fvNominalVal.addElement("gray");
         fvNominalVal.addElement("black");

@@ -37,6 +37,7 @@ import com.feedzai.fos.impl.weka.config.WekaModelConfig;
 import com.feedzai.fos.impl.weka.utils.WekaUtils;
 import com.feedzai.fos.impl.weka.utils.pmml.PMMLProducers;
 import com.feedzai.fos.impl.weka.utils.setter.InstanceSetter;
+import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -309,8 +310,8 @@ public class WekaManager implements Manager {
 
     @Override
     public Model train(ModelConfig config, List<Object[]> instances) throws FOSException {
-        checkNotNull(instances, "Instances must not supplied");
-        checkNotNull(config, "Config must not be supplied");
+        checkNotNull(instances, "Instances must be supplied");
+        checkNotNull(config, "Config must be supplied");
         long time = System.currentTimeMillis();
         WekaModelConfig wekaModelConfig = new WekaModelConfig(config, wekaManagerConfig);
         Classifier classifier = WekaClassifierFactory.create(config);
@@ -330,13 +331,13 @@ public class WekaManager implements Manager {
         logger.debug("Trained model with {} instances in {}ms", instances.size(), (System.currentTimeMillis() - time));
 
         return new ModelBinary(bytes);
-
     }
 
     @Override
     public Model trainFile(ModelConfig config, String path) throws FOSException {
         checkNotNull(path, "Config must be supplied");
         checkNotNull(path, "Path must be supplied");
+
         long time = System.currentTimeMillis();
         WekaModelConfig wekaModelConfig = new WekaModelConfig(config, wekaManagerConfig);
         Classifier classifier = WekaClassifierFactory.create(config);
@@ -346,17 +347,12 @@ public class WekaManager implements Manager {
 
         List<Instance> instances = new ArrayList();
 
-
         String[] line;
         try {
             FileReader fileReader = new FileReader(path);
             CSVReader csvReader = new CSVReader(fileReader);
             while ((line = csvReader.readNext()) != null) {
-                double[] values = new double[line.length];
-                for (int i = 0; i != attributeList.size(); ++i) {
-                    values[i] = attributeList.get(i).parse(line[i], InstanceType.TRAINING);
-
-                }
+                // parsing is done by InstanceSetter's
                 instances.add(WekaUtils.objectArray2Instance(line, instanceSetters, attributes));
             }
 
