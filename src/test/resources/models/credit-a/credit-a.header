@@ -1,0 +1,85 @@
+{
+    "attributes": [
+        {
+            "@type": ".CategoricalAttribute",
+            "name": "A1",
+            "categoricalInstances": ["b","a"]
+        },
+        {
+            "@type": ".NumericAttribute",
+            "name": "A2"
+        },
+        {
+            "@type": ".NumericAttribute",
+            "name": "A3"
+        },
+        {
+            "@type": ".CategoricalAttribute",
+            "name": "A4",
+            "categoricalInstances": ["u", "y", "l", "t"]
+        },
+        {
+            "@type": ".CategoricalAttribute",
+            "name": "A5",
+            "categoricalInstances": ["g", "p", "gg"]
+        },
+        {
+            "@type": ".CategoricalAttribute",
+            "name": "A6",
+            "categoricalInstances": ["c", "d", "cc", "i", "j", "k", "m", "r", "q", "w", "x", "e", "aa", "ff"]
+        },
+        {
+            "@type": ".CategoricalAttribute",
+            "name": "A7",
+            "categoricalInstances": ["v", "h", "bb", "j", "n", "z", "dd", "ff", "o"]
+        },
+        {
+            "@type": ".NumericAttribute",
+            "name": "A8"
+        },
+        {
+            "@type": ".CategoricalAttribute",
+            "name": "A9",
+            "categoricalInstances": ["t", "f"]
+        },
+        {
+            "@type": ".CategoricalAttribute",
+            "name": "A10",
+            "categoricalInstances": ["t", "f"]
+        },
+        {
+            "@type": ".NumericAttribute",
+            "name": "A11"
+        },
+        {
+            "@type": ".CategoricalAttribute",
+            "name": "A12",
+            "categoricalInstances": ["t", "f"]
+        },
+        {
+            "@type": ".CategoricalAttribute",
+            "name": "A13",
+            "categoricalInstances": ["g", "p", "s"]
+        },
+        {
+            "@type": ".NumericAttribute",
+            "name": "A14"
+        },
+        {
+            "@type": ".NumericAttribute",
+            "name": "A15"
+        },
+        {
+            "@type": ".CategoricalAttribute",
+            "name": "class",
+            "categoricalInstances": ["+", "-"]
+        }
+    ],
+    "properties": {
+        "id": "54c5f947-fb25-46cd-b3af-499376171132",
+        "classifierimpl": "hr.irb.fastRandomForest.FastRandomForest",
+        "classIndex":"15"
+    }
+}
+
+

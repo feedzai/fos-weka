@@ -246,4 +246,34 @@ public class WekaManagerTest {
         assertEquals("Scores must be equal", kryoScores.get(0).length, scores.get(0).length);
         assertEquals("Scores must be equal", kryoScores.get(0)[0], scores.get(0)[0], 1e-6);
     }
+
+    @Test
+    public void testCredit() throws FOSException, IOException, ClassNotFoundException {
+        ModelConfig config = ModelConfig.fromFile("target/test-classes/models/credit-a/credit-a.header");
+        UUID model = wekaManager.trainAndAddFile(config, "target/test-classes/models/credit-a/credit-a.data");
+        ModelConfig modelConfig = wekaManager.listModels().get(model);
+
+        assertNotNull("A valid model config must exist for the existing UUID", modelConfig);
+
+        File modelfile = new File(modelConfig.getProperty(WekaModelConfig.MODEL_FILE));
+        assertTrue(modelfile.exists());
+        byte[] serialized_model = new byte[(int) modelfile.length()];
+
+        FileInputStream fis = new FileInputStream(modelfile);
+        fis.read(serialized_model);
+
+        Cloner<Classifier> cloner = new Cloner<Classifier>(serialized_model);
+        Classifier c = cloner.get();
+        assertNotNull(c.getCapabilities());
+
+        // instances from the dataset with some values removed
+        Object[] positive_instance = new Object[]{"a", 27.42, 14.5, "u", "g", "?", "h", 3.085, "t", "t", 01, "?", "g", 00120, 11, "?"};
+        Object[] negative_instance = new Object[]{"b",   "?", 5.29, "u", "g", "q", "v", 0.375, "t", "t", 01, "f", "g", 00160, 0, "?"};
+
+        List<double[]> scores = wekaManager.getScorer().score(model, Arrays.asList(positive_instance, negative_instance));
+
+        assertEquals("Must return 2 scores", 2, scores.size());
+        assertTrue("Must give higher score to the positive class in the positive instance", scores.get(0)[0] > scores.get(0)[1]);
+        assertTrue("Must give higher score to the negative class in the negative instance", scores.get(1)[0] < scores.get(1)[1]);
+    }
 }
