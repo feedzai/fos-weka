@@ -87,34 +87,36 @@ public class RandomForestPMMLProducer implements PMMLProducer<RandomForest> {
         DataDictionary dataDictionary = new DataDictionary();
         MiningSchema miningSchema = new MiningSchema();
 
-        for (int i = 0; i < data.numAttributes(); i++) {
-            Attribute attribute = data.attribute(i);
+        if (data != null) {
+            for (int i = 0; i < data.numAttributes(); i++) {
+                Attribute attribute = data.attribute(i);
 
-            DataType fieldType;
-            if (attribute.isNumeric()) {
-                fieldType = DataType.DOUBLE;
-            } else {
-                fieldType = DataType.STRING;
-            }
-
-            DataField dataField = new DataField(new FieldName(attribute.name()), attribute.isNominal() ? OpType.CATEGORICAL : OpType.CONTINUOUS, fieldType);
-            if (attribute.isNominal()) {
-                Enumeration enumeration = attribute.enumerateValues();
-                while (enumeration.hasMoreElements()) {
-                    dataField.withValues(new Value(String.valueOf(enumeration.nextElement())));
+                DataType fieldType;
+                if (attribute.isNumeric()) {
+                    fieldType = DataType.DOUBLE;
+                } else {
+                    fieldType = DataType.STRING;
                 }
+
+                DataField dataField = new DataField(new FieldName(attribute.name()), attribute.isNominal() ? OpType.CATEGORICAL : OpType.CONTINUOUS, fieldType);
+                if (attribute.isNominal()) {
+                    Enumeration enumeration = attribute.enumerateValues();
+                    while (enumeration.hasMoreElements()) {
+                        dataField.withValues(new Value(String.valueOf(enumeration.nextElement())));
+                    }
+                }
+
+                dataDictionary.withDataFields(dataField);
+
+                MiningField miningField = new MiningField(new FieldName(attribute.name()));
+
+                if (data.classIndex() == i) {
+                    miningField.withUsageType(FieldUsageType.PREDICTED);
+                } else {
+                    miningField.withUsageType(FieldUsageType.ACTIVE);
+                }
+                miningSchema.withMiningFields(miningField);
             }
-
-            dataDictionary.withDataFields(dataField);
-
-            MiningField miningField = new MiningField(new FieldName(attribute.name()));
-
-            if (data.classIndex() == i) {
-                miningField.withUsageType(FieldUsageType.PREDICTED);
-            } else {
-                miningField.withUsageType(FieldUsageType.ACTIVE);
-            }
-            miningSchema.withMiningFields(miningField);
         }
 
         pmml.withDataDictionary(dataDictionary);
@@ -127,10 +129,12 @@ public class RandomForestPMMLProducer implements PMMLProducer<RandomForest> {
         Segmentation segmentation = new Segmentation(MultipleModelMethodType.MAJORITY_VOTE);
         miningModel.withSegmentation(segmentation);
 
-        int segmentId = 1;
-        for (Classifier classifier : RandomForestUtils.getBaggingClassifiers(randomForestClassifier.m_bagger)) {
-            Segment segment = buildSegment(miningSchema, segmentId++, (RandomTree) classifier);
-            segmentation.withSegments(segment);
+        if (randomForestClassifier.m_bagger != null) {
+            int segmentId = 1;
+            for (Classifier classifier : RandomForestUtils.getBaggingClassifiers(randomForestClassifier.m_bagger)) {
+                Segment segment = buildSegment(miningSchema, segmentId++, (RandomTree) classifier);
+                segmentation.withSegments(segment);
+            }
         }
 
         return pmml;
@@ -150,7 +154,7 @@ public class RandomForestPMMLProducer implements PMMLProducer<RandomForest> {
         int rootNodeId = 1;
 
         Node rootNode = new Node().withId(String.valueOf(rootNodeId)).withPredicate(new True());
-        TreeModel treeModel = new TreeModel(miningSchema, rootNode, MiningFunctionType.CLASSIFICATION).withAlgorithmName(ALGORITHM_NAME).withModelName(MODEL_NAME).withSplitCharacteristic(TreeModel.SplitCharacteristic.BINARY_SPLIT);
+        TreeModel treeModel = new TreeModel(miningSchema, rootNode, MiningFunctionType.CLASSIFICATION).withAlgorithmName(ALGORITHM_NAME).withModelName(MODEL_NAME).withSplitCharacteristic(TreeModel.SplitCharacteristic.MULTI_SPLIT);
 
         buildTreeNode(randomTree, randomTree.m_Tree, rootNodeId, rootNode);
 
