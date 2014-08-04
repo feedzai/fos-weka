@@ -60,6 +60,8 @@ public class WekaScorerTest {
         assertEquals(2, score.length);
         assertEquals(1.0, score[0] + score[1], 0.001);
         Assert.assertTrue(((Map<Integer, WekaThreadSafeScorer>) Whitebox.getInternalState(wekaScorer, "wekaThreadSafeScorers")).get(testUUID) instanceof WekaThreadSafeScorerPool);
+
+        wekaManager.close();
     }
 
     @Test
@@ -70,7 +72,6 @@ public class WekaScorerTest {
         configuration.setProperty(FosConfig.HEADER_LOCATION, "target/test-classes/models/threadunsafe");
         configuration.setProperty(FosConfig.FACTORY_NAME, WekaManagerFactory.class.getName());
 
-
         WekaManagerConfig wekaManagerConfig = new WekaManagerConfig(new FosConfig(configuration));
         WekaManager wekaManager = new WekaManager(wekaManagerConfig);
         WekaScorer wekaScorer = wekaManager.getScorer();
@@ -79,5 +80,7 @@ public class WekaScorerTest {
         assertEquals(2, score.length);
         assertEquals(1.0, score[0] + score[1], 0.001);
         Assert.assertTrue(((Map<Integer, WekaThreadSafeScorer>) Whitebox.getInternalState(wekaScorer, "wekaThreadSafeScorers")).get(testUUID) instanceof WekaThreadSafeScorerPassthrough);
+
+        wekaManager.close();
     }
 }
