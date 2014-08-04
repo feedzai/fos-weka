@@ -83,12 +83,7 @@ public class WekaThreadSafeScorerPool implements WekaThreadSafeScorer {
         this.instances.setClassIndex(wekaModelConfig.getClassIndex());
         try {
             BeanUtils.populate(poolConfig, this.wekaModelConfig.getPoolConfiguration());
-
-            final Cloner<Classifier> cloner = new Cloner<Classifier>(wekaModelConfig.getModel());
-            // check that the profided file is in fact a valid classifier object.
-            cloner.get();
-            this.pool = new AutoPopulateGenericObjectPool<>(new ClassifierFactory(cloner), poolConfig);
-
+            this.pool = new AutoPopulateGenericObjectPool<>(new ClassifierFactory(wekaModelConfig.getModel()), poolConfig);
         } catch (Exception e) {
             throw new FOSException(e);
         }

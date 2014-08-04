@@ -23,14 +23,17 @@ package com.feedzai.fos.impl.weka.utils.pool;
 
 import com.feedzai.fos.common.validation.NotNull;
 import com.feedzai.fos.impl.weka.exception.WekaClassifierException;
-import com.feedzai.fos.impl.weka.utils.Cloner;
 import org.apache.commons.pool.BasePoolableObjectFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import weka.classifiers.Classifier;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -42,17 +45,19 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class ClassifierFactory extends BasePoolableObjectFactory<Classifier> {
     private static final Logger logger = LoggerFactory.getLogger(ClassifierFactory.class);
 
-    private Cloner<Classifier> cloner;
+    private File modelPath;
 
     /**
      * Create a new classifier factory using the given cloner.
      *
-     * @param cloner the cloner that creates instances of the factory
+     * @param modelPath The path to the model.
      */
-    public ClassifierFactory(Cloner<Classifier> cloner) {
-        checkNotNull(cloner, "Cloner cannot be null");
+    public ClassifierFactory(File modelPath) {
+        checkNotNull(modelPath, "The path cannot be null");
+        checkArgument(modelPath.exists(), "The model must exist");
+        checkArgument(modelPath.canRead(), "The model must be readable.");
 
-        this.cloner = cloner;
+        this.modelPath = modelPath;
     }
 
 
@@ -70,8 +75,9 @@ public class ClassifierFactory extends BasePoolableObjectFactory<Classifier> {
     public Classifier makeObject() throws WekaClassifierException {
         logger.debug("Creating classifier");
 
-        try {
-            return cloner.get();
+        try (FileInputStream fileInputStream = new FileInputStream(this.modelPath);
+             ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream)) {
+            return (Classifier) objectInputStream.readObject();
         } catch (IOException e) {
             throw new WekaClassifierException(e);
         } catch (ClassNotFoundException e) {
