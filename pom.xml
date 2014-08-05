@@ -19,7 +19,7 @@
   <parent>
     <artifactId>fos</artifactId>
     <groupId>com.feedzai.fos</groupId>
-    <version>1.0.3</version>
+    <version>1.0.3.1-SNAPSHOT</version>
   </parent>
 
   <properties>
