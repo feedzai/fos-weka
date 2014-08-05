@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>fos-impl-weka</artifactId>
   <name>FOS Weka</name>
-  <version>1.0.3.1-SNAPSHOT</version>
+  <version>1.0.3.1</version>
 
   <description>Feedzai Open Scoring Server - Weka Implementation</description>
 
@@ -13,13 +13,13 @@
       <connection>scm:git:git@github.com:feedzai/fos-weka.git</connection>
       <developerConnection>scm:git:git@github.com:feedzai/fos-weka.git</developerConnection>
       <url>git@github.com:feedzai/fos-weka.git</url>
-      <tag>fos-impl-weka-1.0.3</tag>
+      <tag>fos-impl-weka-1.0.3.1</tag>
   </scm>
 
   <parent>
     <artifactId>fos</artifactId>
     <groupId>com.feedzai.fos</groupId>
-    <version>1.0.3.1-SNAPSHOT</version>
+    <version>1.0.3.1</version>
   </parent>
 
   <properties>
