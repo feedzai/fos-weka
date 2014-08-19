@@ -34,10 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import weka.classifiers.Classifier;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.*;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -91,17 +88,24 @@ public class ClassifierFactory extends BasePoolableObjectFactory<Classifier> {
 
         checkArgument(file.exists(), "Source file '"+ file.getAbsolutePath() + "' must exist");
 
+        long time = System.currentTimeMillis();
+
         switch (modelDescriptor.getFormat()) {
             case BINARY:
                 try (FileInputStream fileInputStream = new FileInputStream(file);
-                     ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream)) {
-                    return (Classifier) objectInputStream.readObject();
+                     BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream, 1024 * 1024);
+                     ObjectInputStream objectInputStream = new ObjectInputStream(bufferedInputStream)) {
+                    Classifier classifier = (Classifier) objectInputStream.readObject();
+                    logger.debug("Loaded binary model {} in {} ms.", file.getPath(), (System.currentTimeMillis() - time));
+                    return classifier;
                 } catch (IOException | ClassNotFoundException e) {
                     throw new WekaClassifierException(e);
                 }
             case PMML:
                 try {
-                    return PMMLConsumers.consume(file);
+                    Classifier classifier = PMMLConsumers.consume(file);
+                    logger.debug("Loaded PMML model {} in {} ms.", file.getPath(), (System.currentTimeMillis() - time));
+                    return classifier;
                 } catch (FOSException e) {
                     throw new WekaClassifierException("Failed to consume PMML file " + file.getAbsolutePath() + ".", e);
                 }
