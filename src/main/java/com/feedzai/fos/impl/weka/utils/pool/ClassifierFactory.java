@@ -28,10 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import weka.classifiers.Classifier;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.*;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -74,10 +71,13 @@ public class ClassifierFactory extends BasePoolableObjectFactory<Classifier> {
     @NotNull
     public Classifier makeObject() throws WekaClassifierException {
         logger.debug("Creating classifier");
-
+        long time = System.currentTimeMillis();
         try (FileInputStream fileInputStream = new FileInputStream(this.modelPath);
-             ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream)) {
-            return (Classifier) objectInputStream.readObject();
+             BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream, 1024 * 1024);
+             ObjectInputStream objectInputStream = new ObjectInputStream(bufferedInputStream)) {
+            Classifier classifier = (Classifier) objectInputStream.readObject();
+            logger.debug("Loaded model {} in {} ms.", this.modelPath, (System.currentTimeMillis() - time));
+            return classifier;
         } catch (IOException e) {
             throw new WekaClassifierException(e);
         } catch (ClassNotFoundException e) {
