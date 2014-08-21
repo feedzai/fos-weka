@@ -41,7 +41,7 @@
       <dependency>
         <groupId>nz.ac.waikato.cms.weka</groupId>
         <artifactId>weka-stable</artifactId>
-        <version>3.6.9</version>
+        <version>3.6.11</version>
       </dependency>
 
       <dependency>
@@ -58,13 +58,13 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>fos-api</artifactId>
-      <version>1.0.3</version>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>fos-common</artifactId>
-      <version>1.0.3</version>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>
