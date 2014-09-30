@@ -23,12 +23,13 @@ package com.feedzai.fos.impl.weka.utils.pmml;
 
 import com.feedzai.fos.impl.weka.exception.PMMLConversionException;
 import org.dmg.pmml.Extension;
-import org.dmg.pmml.IOUtil;
 import org.dmg.pmml.PMML;
+import org.jpmml.model.JAXBUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import weka.classifiers.Classifier;
 
+import javax.xml.transform.stream.StreamSource;
 import java.io.*;
 import java.util.zip.GZIPInputStream;
 
@@ -65,12 +66,14 @@ public class PMMLConsumers {
                 try (FileInputStream fis = new FileInputStream(file);
                      GZIPInputStream gzipInputStream = new GZIPInputStream(fis))
                 {
-                    pmml = IOUtil.unmarshal(gzipInputStream);
+                    pmml = JAXBUtil.unmarshalPMML(new StreamSource(gzipInputStream));
                 }
             } else {
                 logger.debug("Consuming PMML file '{}'.", file.getAbsolutePath());
 
-                pmml = IOUtil.unmarshal(file);
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    pmml = JAXBUtil.unmarshalPMML(new StreamSource(fis));
+                }
             }
         } catch (Exception e) {
             throw new PMMLConversionException("Failed to unmarshal PMML file '" + file + "'. Make sure the file is a valid PMML.", e);

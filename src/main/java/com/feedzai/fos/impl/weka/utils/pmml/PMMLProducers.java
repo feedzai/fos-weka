@@ -23,12 +23,13 @@ package com.feedzai.fos.impl.weka.utils.pmml;
 
 import com.feedzai.fos.impl.weka.exception.PMMLConversionException;
 import org.dmg.pmml.Extension;
-import org.dmg.pmml.IOUtil;
 import org.dmg.pmml.PMML;
+import org.jpmml.model.JAXBUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import weka.classifiers.Classifier;
 
+import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.zip.GZIPOutputStream;
@@ -73,12 +74,14 @@ public class PMMLProducers {
                 try (FileOutputStream fileOutputStream = new FileOutputStream(finalPath);
                      GZIPOutputStream gzipOutputStream = new GZIPOutputStream(fileOutputStream);)
                 {
-                    IOUtil.marshal(pmml, gzipOutputStream);
+                    JAXBUtil.marshalPMML(pmml, new StreamResult(gzipOutputStream));
                 }
             } else {
                 logger.debug("Saving file to '{}'.", file.getAbsolutePath());
 
-                IOUtil.marshal(pmml, file);
+                try (FileOutputStream fos = new FileOutputStream(file)) {
+                    JAXBUtil.marshalPMML(pmml, new StreamResult(file));
+                }
             }
 
             logger.debug("File successfully saved.");

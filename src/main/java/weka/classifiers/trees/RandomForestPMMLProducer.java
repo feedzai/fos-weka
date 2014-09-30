@@ -24,6 +24,7 @@ package weka.classifiers.trees;
 import com.feedzai.fos.impl.weka.exception.PMMLConversionException;
 import com.feedzai.fos.impl.weka.utils.pmml.PMMLProducer;
 import org.dmg.pmml.*;
+import org.jpmml.model.JAXBUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import weka.classifiers.Classifier;
@@ -31,7 +32,7 @@ import weka.classifiers.RandomForestUtils;
 import weka.core.*;
 import weka.core.Attribute;
 
-import javax.xml.bind.JAXBException;
+import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -66,8 +67,8 @@ public class RandomForestPMMLProducer implements PMMLProducer<RandomForest> {
     @Override
     public void produce(RandomForest randomForestClassifier, File targetFile) throws PMMLConversionException {
         PMML pmml = produce(randomForestClassifier);
-        try {
-            IOUtil.marshal(pmml, targetFile);
+        try (FileOutputStream fis = new FileOutputStream(targetFile)){
+            JAXBUtil.marshalPMML(pmml, new StreamResult(fis));
         } catch (Exception e) {
             throw new PMMLConversionException("Failed to marshal the PMML to the given file.", e);
         }
@@ -81,7 +82,7 @@ public class RandomForestPMMLProducer implements PMMLProducer<RandomForest> {
 
         Header header = buildPMMLHeader("Weka RandomForest as PMML.");
 
-        PMML pmml = new PMML(header, new DataDictionary(), "4.1");
+        PMML pmml = new PMML(header, new DataDictionary(), "4.2");
 
         // Builds the PMML DataDictionary and MiningSchema elements.
         DataDictionary dataDictionary = new DataDictionary();

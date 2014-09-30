@@ -24,14 +24,17 @@ package weka.classifiers.trees;
 import com.feedzai.fos.impl.weka.exception.PMMLConversionException;
 import com.feedzai.fos.impl.weka.utils.pmml.PMMLConsumer;
 import org.dmg.pmml.*;
+import org.jpmml.model.JAXBUtil;
 import weka.classifiers.Classifier;
 import weka.classifiers.RandomForestUtils;
 import weka.classifiers.meta.Bagging;
 import weka.core.*;
 import weka.core.Attribute;
 
+import javax.xml.transform.stream.StreamSource;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.util.List;
 
 import static com.feedzai.fos.impl.weka.utils.pmml.PMMLConversionCommons.*;
@@ -47,8 +50,8 @@ public class RandomForestPMMLConsumer implements PMMLConsumer<RandomForest> {
     @Override
     public RandomForest consume(String pmmlString) throws PMMLConversionException {
         PMML pmml = null;
-        try {
-            pmml = IOUtil.unmarshal(new ByteArrayInputStream(pmmlString.getBytes()));
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(pmmlString.getBytes())){
+            pmml = JAXBUtil.unmarshalPMML(new StreamSource(bais));
         } catch (Exception e) {
             throw new PMMLConversionException("Failed to unmarshal PMML from string. Make sure it is a valid PMML.", e);
         }
@@ -58,8 +61,8 @@ public class RandomForestPMMLConsumer implements PMMLConsumer<RandomForest> {
     @Override
     public RandomForest consume(File file) throws PMMLConversionException {
         PMML pmml = null;
-        try {
-            pmml = IOUtil.unmarshal(file);
+        try (FileInputStream fis = new FileInputStream(file)) {
+            pmml = JAXBUtil.unmarshalPMML(new StreamSource(fis));
         } catch (Exception e) {
             throw new PMMLConversionException("Failed to unmarshal PMML file '" + file + "'. Make sure the file is a valid PMML.", e);
         }
