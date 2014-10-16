@@ -387,11 +387,7 @@ public class WekaManager implements Manager {
             scorerHandler.close();
         }
 
-        try {
-            serverSocket.close();
-        } catch (IOException e) {
-            // nothing to do here
-        }
+        IOUtils.closeQuietly(serverSocket);
         saveConfiguration();
     }
 
@@ -506,22 +502,14 @@ public class WekaManager implements Manager {
                     logger.error("Error scoring instance", e);
                 }
             } finally {
-                try {
-                    client.close();
-                } catch (IOException e) {
-                    // nothing to do here
-                }
+                IOUtils.closeQuietly(client);
                 running = false;
             }
         }
 
         public void close() {
-            try {
-                running = false;
-                client.close();
-            } catch (IOException e) {
-                // nothing to do here
-            }
+            running = false;
+            IOUtils.closeQuietly(client);
         }
     }
 }
