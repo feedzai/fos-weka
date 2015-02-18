@@ -24,6 +24,7 @@ package com.feedzai.fos.impl.weka;
 import com.feedzai.fos.api.FOSException;
 import com.feedzai.fos.api.ModelConfig;
 import com.feedzai.fos.impl.weka.config.WekaModelConfig;
+import hr.irb.fastRandomForest.FastRandomForest;
 import junit.framework.Assert;
 import org.junit.Test;
 import weka.classifiers.Classifier;
@@ -55,5 +56,15 @@ public class WekaClassifierFactoryTest {
         Assert.assertEquals(2,classifier.getClassifiers().length);
         Assert.assertEquals(J48.class,classifier.getClassifiers()[0].getClass());
         Assert.assertEquals(NaiveBayes.class,classifier.getClassifiers()[1].getClass());
+    }
+
+    @Test
+    public void testFastRandomForestModel() throws FOSException {
+        ModelConfig modelConfig = new ModelConfig();
+        modelConfig.setProperty(WekaModelConfig.CLASSIFIER_IMPL, "hr.irb.fastRandomForest.FastRandomForest");
+
+        Classifier classifier = WekaClassifierFactory.create(modelConfig);
+
+        Assert.assertEquals("A FastRandomForest model was created", FastRandomForest.class, classifier.getClass());
     }
 }
