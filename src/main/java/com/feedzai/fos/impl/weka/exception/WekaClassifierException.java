@@ -43,7 +43,17 @@ public class WekaClassifierException extends FOSException {
      *
      * @param msg the message that explains the exception
      */
-    protected WekaClassifierException(String msg) {
+    public WekaClassifierException(String msg) {
         super(msg);
+    }
+
+    /**
+     * Create a new exception with the given message and cause.
+     *
+     * @param msg the message that explains the exception
+     * @param cause the original exception that originated this one
+     */
+    public WekaClassifierException(String msg, Throwable cause) {
+        super(msg, cause);
     }
 }

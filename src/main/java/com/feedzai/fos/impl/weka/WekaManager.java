@@ -179,27 +179,18 @@ public class WekaManager implements Manager {
         }
     }
 
+
     @Override
     public synchronized UUID addModel(ModelConfig config, Model model) throws FOSException {
+        File modelFile;
+
         try {
-            UUID uuid = getUuid(config);
-
-            File modelFile = createModelFile(wekaManagerConfig.getHeaderLocation(), uuid, model);
-
-            WekaModelConfig wekaModelConfig = new WekaModelConfig(config, wekaManagerConfig);
-            wekaModelConfig.setId(uuid);
-
-            wekaModelConfig.setModelDescriptor(getModelDescriptor(model, modelFile));
-
-            modelConfigs.put(uuid, wekaModelConfig);
-            wekaScorer.addOrUpdate(wekaModelConfig);
-
-            saveConfiguration();
-            logger.debug("Model {} added", uuid);
-            return uuid;
+            modelFile = createModelFile(wekaManagerConfig.getHeaderLocation(), getUuid(config), model);
         } catch (IOException e) {
-            throw new FOSException(e);
+            throw new FOSException("Unable to create model file", e);
         }
+
+        return addModel(config, getModelDescriptor(model, modelFile));
     }
 
     @Override
@@ -212,6 +203,7 @@ public class WekaManager implements Manager {
 
         modelConfigs.put(uuid, wekaModelConfig);
         wekaScorer.addOrUpdate(wekaModelConfig);
+
         saveConfiguration();
         logger.debug("Model {} added", uuid);
         return uuid;
