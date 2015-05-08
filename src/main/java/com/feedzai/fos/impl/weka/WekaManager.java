@@ -375,7 +375,6 @@ public class WekaManager implements Manager {
     public synchronized void close() throws FOSException {
         acceptThreadRunning = false;
         if (scorerHandler != null) {
-            scorerHandler.running = false;
             scorerHandler.close();
         }
 
@@ -438,70 +437,5 @@ public class WekaManager implements Manager {
         File target = new File(saveFilePath);
 
         PMMLProducers.produce(classifier, target, compress);
-    }
-
-    /**
-     * This class should be used to perform scoring requests
-     * to a remote FOS instance that suports kryo end points.
-     * <p/>
-     * It listens on a socket input stream for Kryo serialized {@link ScoringRequestEnvelope}
-     * objects, extracts them and forwards them to the local scorer.
-     * <p/>
-     * The scoring result is then Kryo encoded on the socket output stream.
-     */
-    private static class KryoScoringEndpoint implements Runnable {
-        public static final int BUFFER_SIZE = 1024;
-        Socket client;
-        Scorer scorer;
-        private volatile boolean running = true;
-
-        private KryoScoringEndpoint(Socket client, Scorer scorer) throws IOException {
-            this.client = client;
-            this.scorer = scorer;
-        }
-
-        @Override
-        public void run() {
-            Kryo kryo = new Kryo();
-            kryo.addDefaultSerializer(UUID.class, new CustomUUIDSerializer());
-            // workaround for java.util.Arrays$ArrayList missing default constructor
-            kryo.register(Arrays.asList().getClass(), new CollectionSerializer() {
-                protected Collection create(Kryo kryo, Input input, Class<Collection> type) {
-                    return new ArrayList();
-                }
-            });
-
-            Input input = new Input(BUFFER_SIZE);
-            Output output = new Output(BUFFER_SIZE);
-
-            ScoringRequestEnvelope request = null;
-            try (InputStream is = client.getInputStream();
-                 OutputStream os = client.getOutputStream()) {
-                input.setInputStream(is);
-                output.setOutputStream(os);
-                while (running) {
-                    request = kryo.readObject(input, ScoringRequestEnvelope.class);
-                    List<double[]> scores = scorer.score(request.getUUIDs(),
-                            request.getInstance());
-                    kryo.writeObject(output, scores);
-                    output.flush();
-                    os.flush();
-                }
-            } catch (Exception e) {
-                if (request != null) {
-                    logger.error("Error scoring instance {} for models {}", Arrays.toString(request.getInstance()), Arrays.toString(request.getUUIDs().toArray()), e);
-                } else {
-                    logger.error("Error scoring instance", e);
-                }
-            } finally {
-                IOUtils.closeQuietly(client);
-                running = false;
-            }
-        }
-
-        public void close() {
-            running = false;
-            IOUtils.closeQuietly(client);
-        }
     }
 }
