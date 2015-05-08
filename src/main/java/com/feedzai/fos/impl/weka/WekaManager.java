@@ -22,14 +22,8 @@
 package com.feedzai.fos.impl.weka;
 
 import au.com.bytecode.opencsv.CSVReader;
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
-import com.esotericsoftware.kryo.serializers.CollectionSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.feedzai.fos.api.*;
-import com.feedzai.fos.common.kryo.CustomUUIDSerializer;
-import com.feedzai.fos.common.kryo.ScoringRequestEnvelope;
 import com.feedzai.fos.common.validation.NotBlank;
 import com.feedzai.fos.common.validation.NotNull;
 import com.feedzai.fos.impl.weka.config.WekaManagerConfig;
@@ -37,7 +31,6 @@ import com.feedzai.fos.impl.weka.config.WekaModelConfig;
 import com.feedzai.fos.impl.weka.utils.WekaUtils;
 import com.feedzai.fos.impl.weka.utils.pmml.PMMLProducers;
 import com.feedzai.fos.impl.weka.utils.setter.InstanceSetter;
-import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -49,7 +42,10 @@ import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
