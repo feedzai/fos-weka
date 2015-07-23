@@ -164,51 +164,6 @@ public class WekaScorer implements Scorer {
     }
 
     /**
-     * Score each <code>scorable</code> with the modelId that maps it in the map.
-     * <p/> If multiple models/scorables are given as parameters, they will be scored in parallel.
-     *
-     * @param modelIdsToScorables a map from modelId to scorable
-     * @return a map from modelId to score
-     * @throws FOSException when classification was not possible
-     */
-    @Override
-    @NotNull
-    public Map<UUID, double[]> score(Map<UUID, Object[]> modelIdsToScorables) throws FOSException {
-        checkNotNull(modelIdsToScorables, "Map of instances cannot be null");
-
-        Map<UUID, double[]> scores = new HashMap<>(modelIdsToScorables.size());
-
-        try {
-            reloadModelsLock.readLock().lock();
-
-            if (modelIdsToScorables.size() == 1) {
-                // if only one model, then don't parallelize scoring
-                for (Map.Entry<UUID, Object[]> entry : modelIdsToScorables.entrySet()) { // easy way to access...
-                    WekaThreadSafeScorer wekaThreadSafeScorer = getScorer(entry.getKey());
-                    scores.put(entry.getKey(), wekaThreadSafeScorer.score(entry.getValue()));
-                }
-            } else {
-                Map<UUID, Future<double[]>> futureScores = new HashMap<>(modelIdsToScorables.size());
-
-                // scatter
-                for (Map.Entry<UUID, Object[]> entry : modelIdsToScorables.entrySet()) {
-                    WekaThreadSafeScorer wekaThreadSafeScorer = getScorer(entry.getKey());
-                    futureScores.put(entry.getKey(), executorService.submit(new AsyncScoringTask(wekaThreadSafeScorer, entry.getValue())));
-                }
-
-                // gather
-                for (Map.Entry<UUID, Future<double[]>> entry : futureScores.entrySet()) {
-                    scores.put(entry.getKey(), getFuture(entry.getValue(), entry.getKey()));
-                }
-            }
-        } finally {
-            reloadModelsLock.readLock().unlock();
-        }
-
-        return scores;
-    }
-
-    /**
      * Score each <code>scorable</code> with the given <code>modelId</code>.
      * <p/> If multiple <code>scorables</code> are given as parameters, they will be scored in parallel.
      *
@@ -250,6 +205,31 @@ public class WekaScorer implements Scorer {
         }
 
         return scores;
+    }
+
+
+    /**
+     * Score a single <code>scorable</code> with the given <code>modelId</code>.
+     *
+     * @param modelId   the id of the model
+     * @param scorable  the instance to score
+     * @return a list of scores with the same order as the scorable array
+     * @throws FOSException when classification was not possible
+     */
+    @Override
+    @NotNull
+    public double[] score(UUID modelId, Object[] scorable) throws FOSException {
+        checkNotNull(scorable, "The scorable cannot be null");
+
+        try {
+            reloadModelsLock.readLock().lock();
+
+            WekaThreadSafeScorer wekaThreadSafeScorer = getScorer(modelId);
+            return wekaThreadSafeScorer.score(scorable);
+
+        } finally {
+            reloadModelsLock.readLock().unlock();
+        }
     }
 
     /**
