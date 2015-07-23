@@ -76,7 +76,8 @@ public class WekaScorer implements Scorer {
 
     /**
      * Creates a new scorer for the models identified int he configuration.
-     * <p/>If loading of a model was not possible, this logs a message but continues to load other models and does not throw any exception.
+     *
+     * <p>If loading of a model was not possible, this logs a message but continues to load other models and does not throw any exception.
      *
      * @param modelConfigs      the list of models to instantiate
      * @param wekaManagerConfig the global configuration
@@ -121,7 +122,8 @@ public class WekaScorer implements Scorer {
 
     /**
      * Score the <code>scorable</code> for each model ID identified by <code>modelIds</code>.
-     * <p/> If multiple models are given as parameters, they will be scored in parallel.
+     *
+     * <p> If multiple models are given as parameters, they will be scored in parallel.
      *
      * @param modelIds the list of models to score
      * @param scorable the item to score
@@ -165,7 +167,8 @@ public class WekaScorer implements Scorer {
 
     /**
      * Score each <code>scorable</code> with the given <code>modelId</code>.
-     * <p/> If multiple <code>scorables</code> are given as parameters, they will be scored in parallel.
+     *
+     * <p> If multiple <code>scorables</code> are given as parameters, they will be scored in parallel.
      *
      * @param modelId   the id of the model
      * @param scorables an array of instances to score
@@ -234,8 +237,8 @@ public class WekaScorer implements Scorer {
 
     /**
      * Adds the given model to the managed models.
-     * <p/>
-     * If the provided model id already exists, then the older model is removed and the new one is instantiated.
+     *
+     * <p> If the provided model id already exists, then the older model is removed and the new one is instantiated.
      *
      * @param wekaModelConfig the configuration of the new model
      * @throws FOSException when the new model could not be instantiated
@@ -251,7 +254,8 @@ public class WekaScorer implements Scorer {
 
     /**
      * Removes the given model from the managed models.
-     * <p/> If the model does not exist no exception will be thrown.
+     *
+     * <p> If the model does not exist no exception will be thrown.
      *
      * @param modelId the id of the model to remove.
      */
@@ -272,7 +276,6 @@ public class WekaScorer implements Scorer {
     public Classifier getClassifier(UUID modelId) throws FOSException {
         return wekaThreadSafeScorers.get(modelId).getClassifier();
     }
-
 
     /**
      * Switches the {@link com.feedzai.fos.impl.weka.WekaScorer} used for the model with the given UUID.
