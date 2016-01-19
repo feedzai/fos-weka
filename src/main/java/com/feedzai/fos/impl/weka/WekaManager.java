@@ -23,7 +23,16 @@ package com.feedzai.fos.impl.weka;
 
 import au.com.bytecode.opencsv.CSVReader;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.feedzai.fos.api.*;
+import com.feedzai.fos.api.Attribute;
+import com.feedzai.fos.api.FOSException;
+import com.feedzai.fos.api.InstanceType;
+import com.feedzai.fos.api.KryoScoringEndpoint;
+import com.feedzai.fos.api.Manager;
+import com.feedzai.fos.api.Model;
+import com.feedzai.fos.api.ModelBinary;
+import com.feedzai.fos.api.ModelConfig;
+import com.feedzai.fos.api.ModelDescriptor;
+import com.feedzai.fos.api.ModelPMML;
 import com.feedzai.fos.common.validation.NotBlank;
 import com.feedzai.fos.common.validation.NotNull;
 import com.feedzai.fos.impl.weka.config.WekaManagerConfig;
@@ -31,6 +40,7 @@ import com.feedzai.fos.impl.weka.config.WekaModelConfig;
 import com.feedzai.fos.impl.weka.utils.WekaUtils;
 import com.feedzai.fos.impl.weka.utils.pmml.PMMLProducers;
 import com.feedzai.fos.impl.weka.utils.setter.InstanceSetter;
+import com.google.common.base.Optional;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -48,11 +58,17 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static com.feedzai.fos.api.util.ManagerUtils.*;
+import static com.feedzai.fos.api.util.ManagerUtils.createModelFile;
+import static com.feedzai.fos.api.util.ManagerUtils.getUuid;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -319,6 +335,11 @@ public class WekaManager implements Manager {
         logger.debug("Trained model with {} instances in {}ms", instances.size(), (System.currentTimeMillis() - time));
 
         return new ModelBinary(bytes);
+    }
+
+    @Override
+    public double[] featureImportance(UUID uuid, Optional<List<Object[]>> instances, double sampleRate, long seed) throws FOSException {
+        throw new FOSException("FOS Weka implementation does not support feature importance");
     }
 
     @Override
